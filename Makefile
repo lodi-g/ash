@@ -10,13 +10,13 @@ RM				:=	@rm -v -f
 
 LD				:=	gcc
 INCFLAGS	:=	$(addprefix -I, $(INCDIR))
-LDLIBS		:=
+LDLIBS		:=	readline
 LDLIBS		:=	$(addprefix -l, $(LDLIBS))
 LDFLAGS		:=	$(INCFLAGS)
 
 NAME			:=	$(OUTDIR)/ash
 
-SRCS			:=	main.s exec.s
+SRCS			:=	main.s exec.s prompt.s
 OBJS			:=	$(addprefix $(OBJDIR)/, $(SRCS))
 SRCS			:=	$(addprefix $(SRCDIR)/, $(SRCS))
 OBJS			:=	$(patsubst %.s, %.o, $(OBJS))
