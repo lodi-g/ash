@@ -10,23 +10,32 @@ section .text
   extern exec
 
   main:
-    call prompt_display
+    push rbp
+    mov rbp, rsp
 
-    cmp rax, 0x0             ; EOF / ^D
-    je main.leave
+    sub rsp, 0x10
+    mov QWORD [rbp - 0x8], 0x0
 
-    mov rdi, line_info       ; Debugging
-    push rax
-    push rax
-    pop rsi
-    mov rax, 0x0
-    call printf
+    .loop:
+      call prompt_display
 
-    pop rdi                  ; Executing return of prompt_display
-    call exec
+      mov [rbp - 0x8], rax
+
+      cmp QWORD [rbp - 0x8], 0x0   ; EOF / ^D
+      je main.leave
+
+      xor rax, rax           ; Debugging
+      mov rdi, line_info
+      mov rsi, [rbp - 0x8]
+      call printf
+
+      mov rdi, [rbp - 0x8]   ; Executing return of prompt_display
+      call exec
+
+      jmp main.loop
 
     .leave:
-      mov rdi, 0x0             ; exit(0)
+      mov rdi, 0x0           ; exit(0)
       call exit
 
 
