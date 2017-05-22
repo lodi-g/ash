@@ -15,7 +15,8 @@ section .text:
 
   ; int process_exec(char *file, char **argv)
   process_exec:
-    enter 0x0, 0x0
+    push rbp
+    mov rbp, rsp                                 ; function prologue
 
     sub rsp, 0x30                                ; expanding stack
     mov QWORD [rbp - 0x1c], rdi                  ; (char *)file
@@ -28,16 +29,16 @@ section .text:
     je process_exec.child
     jmp process_exec.parent
 
-    .child:                                      ; We're in the child
+    .child:
       mov rdi, [rbp - 0x1c]
       lea rsi, [rbp - 0x1c]
 
-      call execvp                                ; execvp(char *, char **);
+      call execvp                                ; execvp(file, argv);
 
       mov rdi, [rbp - 0x1c]
-      call perror
+      call perror                                ; perror(file)
       mov rdi, 0x1
-      call exit
+      call exit                                  ; exit(1)
 
     .parent:
       mov rdi, r12
@@ -51,7 +52,9 @@ section .text:
 
     add rsp, 0x30                                ; restoring old stack size
 
-    leave
+    mov rsp, rbp                                 ; function epilogue
+    pop rbp
+
     ret
 
 
