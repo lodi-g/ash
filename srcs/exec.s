@@ -19,7 +19,7 @@ section .text:
 
     sub rsp, 0x30                                ; expanding stack
     mov QWORD [rbp - 0x1c], rdi                  ; (char *)file
-    mov QWORD [rbp - 0x14], 0x0                  ; (char **)argv
+    mov QWORD [rbp - 0x14], rsi                  ; (char **)argv
     mov DWORD [rbp - 0x10], 0x0                  ; wstatus
 
     call fork                                    ; fork()
@@ -45,9 +45,9 @@ section .text:
       mov rdx, 0x0
       call waitpid                               ; waitpid(pid, &wstatus, 0)
 
-      mov rdi, [rbp - 0x10]                      ; wstatus
-      mov rsi, [rbp - 0x1c]                      ; file
-      call process_exited
+      mov rdi, [rbp - 0x10]
+      mov rsi, [rbp - 0x1c]
+      call process_exited                        ; process_exited(wstatus, file)
 
     add rsp, 0x30                                ; restoring old stack size
 
@@ -70,17 +70,7 @@ section .text:
       and rax, 0xff00                            ;   wstatus & 0xff00
       sar rax, 0x8                               ;   wstatus >> 8
 
-      push rax                                   ; Saving to return it
-
-      mov rdi, exited                            ; "ash: %s exited with signal %d.\n"
-      mov rsi, [rbp - 0x1c]                      ;   Process name
-      movzx rdx, al                              ;   Exit status
-
-      xor rax, rax                               ; Not using SSE registers
-
-      call printf
-
-      pop rax                                    ; Returning last value
+      movzx rax, al                              ; Returning WEXITSTATUS(wstatus)
 
       jmp process_exited.leave
 
@@ -90,16 +80,17 @@ section .text:
 
       push rax                                   ; Saving to return it
 
-      mov rdi, signaled                          ; "ash: %s terminated by signal %d.\n"
-      mov rsi, [rbp - 0x1c]                      ;   Process name
-      mov rdx, rax                               ;   Signal number
+      lea rdi, [signals]
+      imul rax, 0x8
+      add rdi, rax
+      mov rdi, [rdi]
 
       xor rax, rax                               ; Not using SSE registers
 
       call printf
 
       pop rax                                    ; Returning signal number
-      add rax, 0x80                              ; + 128
+      add rax, 0x80                              ;   + 128
 
       jmp process_exited.leave
 
@@ -108,5 +99,19 @@ section .text:
 
 
 section .data:
-  signaled: db "ash: %s terminated by signal %d.", 10, 0
-  exited: db "ash: %s exited with status %d.", 10, 0
+  ; Signal list
+  null: db 0
+  hup: db "Hangup", 10, 0
+  int: db "Interupt", 10, 0
+  quit: db "Quit", 10, 0
+  ill: db "Illegal hardware instruction", 10, 0
+  trap: db "Trace trap", 10, 0
+  abrt: db "Abort", 10, 0
+  bus: db "Bus error", 10, 0
+  fpe: db "Floating point exception", 10, 0
+  kill: db "Filled", 10, 0
+  usr1: db "User signal 1", 10, 0
+  segv: db "Segmentation Fault", 10, 0
+  usr2: db "User signal 2", 10, 0
+
+  signals: dq null, hup, int, quit, ill, trap, abrt, bus, fpe, kill, usr1, segv, usr2
