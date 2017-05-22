@@ -80,14 +80,14 @@ section .text:
 
       push rax                                   ; Saving to return it
 
-      lea rdi, [signals]
+      lea rdi, [signals]                         ; signals[wstatus * sizeof(char *)]
       imul rax, 0x8
       add rdi, rax
       mov rdi, [rdi]
 
       xor rax, rax                               ; Not using SSE registers
 
-      call printf
+      call printf                                ; printf(signal)
 
       pop rax                                    ; Returning signal number
       add rax, 0x80                              ;   + 128
