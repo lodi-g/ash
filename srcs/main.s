@@ -3,42 +3,44 @@ global main
 section .text
   ; libc
   extern printf
-  extern exit
 
   ; ash
   extern prompt_display
-  extern exec
+  extern process_exec
 
   main:
-    push rbp
-    mov rbp, rsp
+    enter 0x0, 0x0
 
-    sub rsp, 0x10
-    mov QWORD [rbp - 0x8], 0x0
+    sub rsp, 0x14
+    mov QWORD [rbp - 0x8], 0x0                   ; readline return value
+    mov DWORD [rbp - 0x10], 0x0                  ; last return value
 
     .loop:
       call prompt_display
 
       mov [rbp - 0x8], rax
 
-      cmp QWORD [rbp - 0x8], 0x0   ; EOF / ^D
+      cmp QWORD [rbp - 0x8], 0x0                 ; EOF / ^D
       je main.leave
 
-      xor rax, rax           ; Debugging
+      xor rax, rax                               ; Debug
       mov rdi, line_info
       mov rsi, [rbp - 0x8]
       call printf
 
-      mov rdi, [rbp - 0x8]   ; Executing return of prompt_display
-      call exec
+      mov rdi, [rbp - 0x8]                       ; readline return value
+      call process_exec
+      mov [rbp - 0x10], rax
 
       jmp main.loop
 
     .leave:
-      mov rdi, 0x0           ; exit(0)
-      call exit
+      mov rax, [rbp - 0x10]                      ; main returns last return value
+      add rsp, 0x14
+
+      leave
+      ret
 
 
 section .data
   line_info: db "Input: '%s'", 10, 0
-  progname: db "./retst", 0
