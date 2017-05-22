@@ -1,3 +1,7 @@
+; ash - the assembly shell
+; written by Gregoire Lodi
+; https://github.com/lodi-g
+
 global main
 
 section .text

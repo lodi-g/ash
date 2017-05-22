@@ -1,3 +1,7 @@
+; ash - the assembly shell
+; written by Gregoire Lodi
+; https://github.com/lodi-g
+
 global prompt_display:function
 
 section .text
