@@ -11,25 +11,62 @@ section .text
 
   ; libc
   extern isatty
+  extern read
+  extern printf
+  extern strlen
+  extern calloc
 
   prompt_display:
-    mov rdi, 0x0
+    mov rdi, 0x0                                 ; STDIN_FILENO
     call isatty
 
     cmp rax, 0x1                                 ; isatty?
-    jne prompt_display.leave                     ; should implement getline()
+    jne prompt_display.getline
+    jmp prompt_display.readline
 
-    mov rdi, prompt                              ; print prompt
-    call readline
+    .readline:
+      mov rdi, prompt
+      call readline                              ; readline(prompt)
 
-    mov r12, rax                                 ; save buf
+      push rax
 
-    mov rdi, rax
-    call add_history
+      mov rdi, rax
+      call add_history                           ; add_history(buffer)
 
-    mov rax, r12                                 ; restore buf
+      jmp prompt_display.leave
+
+    .getline:
+      mov rdi, 0x400
+      mov rsi, 0x1
+      call calloc                                ; calloc(1024, sizeof(char))
+
+      mov r12, rax                               ; saving our 'buf' pointer
+
+      mov rdi, 0x0
+      mov rsi, rax
+      mov rdx, 0x3e8
+      call read                                  ; read(STDIN_FILENO, buf, 1000)
+
+      cmp rax, 0x0                               ; Read zero bytes?
+      je prompt_display.end
+
+      mov rdi, r12
+      call strlen
+
+      mov rdx, r12
+      add rdx, rax
+      sub rdx, 0x1
+      mov BYTE [rdx], 0x0                        ; buffer[strlen(buffer) - 1] = 0
+
+      push r12
+      jmp prompt_display.leave
+
+    .end:
+      mov rax, 0x0                               ; Returning NULL
+      ret
 
     .leave:
+      pop rax                                    ; Returning buffer
       ret
 
 
