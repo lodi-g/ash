@@ -12,18 +12,18 @@ section .text
     mov rdi, 0x0
     call isatty
 
-    cmp rax, 0x1             ; isatty?
-    jne prompt_display.leave
+    cmp rax, 0x1                                 ; isatty?
+    jne prompt_display.leave                     ; should implement getline()
 
-    mov rdi, prompt          ; print prompt
+    mov rdi, prompt                              ; print prompt
     call readline
 
-    mov r12, rax             ; save buf
+    mov r12, rax                                 ; save buf
 
     mov rdi, rax
     call add_history
 
-    mov rax, r12             ; restore buf
+    mov rax, r12                                 ; restore buf
 
     .leave:
       ret
