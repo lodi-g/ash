@@ -1,6 +1,7 @@
 tests/
 *gdb*
 *peda*
+*vgcore*
 ash
 
 # Created by https://www.gitignore.io/api/emacs,c,linux,assembly,asm,valgrind,gdb,peda
