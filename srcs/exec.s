@@ -4,6 +4,9 @@
 
 global process_exec:function
 
+%include "def.inc"
+%include "exec.inc"
+
 section .text:
   ; libc
   extern fork
@@ -15,8 +18,7 @@ section .text:
 
   ; int process_exec(char *file, char **argv)
   process_exec:
-    push rbp
-    mov rbp, rsp                                 ; function prologue
+    prologue
 
     sub rsp, 0x30                                ; expanding stack
     mov QWORD [rbp - 0x1c], rdi                  ; (char *)file
@@ -52,49 +54,59 @@ section .text:
 
     add rsp, 0x30                                ; restoring old stack size
 
-    mov rsp, rbp                                 ; function epilogue
-    pop rbp
-
+    epilogue
     ret
 
 
   ; int process_exited(int wstatus, char *file);
   process_exited:
     mov rax, rdi
-
-    and rax, 0x7f                                ; WIFEXITED(status)
+    WIFEXITED rax                                ; see 'exec.inc' for all W* macros
 
     test rax, rax                                ; exited normally?
     je process_exited.normally
     jmp process_exited.signal
 
     .normally:
-      mov rax, rdi                               ; WEXITSTATUS(wstatus)
-      and rax, 0xff00                            ;   wstatus & 0xff00
-      sar rax, 0x8                               ;   wstatus >> 8
-
+      mov rax, rdi
+      WEXITSTATUS rax
       movzx rax, al                              ; Returning WEXITSTATUS(wstatus)
 
       jmp process_exited.leave
 
     .signal:
+      push rdi
+      push rdi
       mov rax, rdi                               ; WTERMSIG(wstatus)
-      and rax, 0x7f                              ;   wstatus & 0x7f
-
-      push rax                                   ; Saving to return it
+      WTERMSIG rax
 
       lea rdi, [signals]                         ; signals[wstatus * sizeof(char *)]
       imul rax, 0x8
       add rdi, rax
       mov rdi, [rdi]
 
-      xor rax, rax                               ; Not using SSE registers
+      xprintf
 
-      call printf                                ; printf(signal)
+      pop rdx                                    ; wstatus
+      WCOREDUMP rdx
+
+      cmp rdx, 0x0
+      jne process_exited.core_dumped
+
+      mov rdi, endl
+      xprintf
 
       pop rax                                    ; Returning signal number
       add rax, 0x80                              ;   + 128
 
+      jmp process_exited.leave
+
+    .core_dumped:
+      mov rdi, cdump
+      xprintf                                    ; printf("(core dumped)")
+
+      pop rax
+      add rax, 0x80
       jmp process_exited.leave
 
     .leave:
@@ -102,19 +114,22 @@ section .text:
 
 
 section .data:
+  cdump: db " (core dumped)", 10, 0
+  endl: db 10, 0
+
   ; Signal list
   null: db 0
-  hup: db "Hangup", 10, 0
-  int: db "Interupt", 10, 0
-  quit: db "Quit", 10, 0
-  ill: db "Illegal hardware instruction", 10, 0
-  trap: db "Trace trap", 10, 0
-  abrt: db "Abort", 10, 0
-  bus: db "Bus error", 10, 0
-  fpe: db "Floating point exception", 10, 0
-  kill: db "Filled", 10, 0
-  usr1: db "User signal 1", 10, 0
-  segv: db "Segmentation Fault", 10, 0
-  usr2: db "User signal 2", 10, 0
+  hup: db "Hangup", 0
+  int: db "Interupt", 0
+  quit: db "Quit", 0
+  ill: db "Illegal hardware instruction", 0
+  trap: db "Trace trap", 0
+  abrt: db "Abort", 0
+  bus: db "Bus error", 0
+  fpe: db "Floating point exception", 0
+  kill: db "Filled", 0
+  usr1: db "User signal 1", 0
+  segv: db "Segmentation Fault", 0
+  usr2: db "User signal 2", 0
 
   signals: dq null, hup, int, quit, ill, trap, abrt, bus, fpe, kill, usr1, segv, usr2
