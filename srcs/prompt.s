@@ -4,6 +4,8 @@
 
 global prompt_display:function
 
+%include "def.inc"
+
 section .text
   ; readline
   extern readline
@@ -17,8 +19,8 @@ section .text
   extern calloc
 
   prompt_display:
-    mov rdi, 0x0                                 ; STDIN_FILENO
-    call isatty
+    mov rdi, STDIN_FILENO
+    call isatty                                  ; isatty(STDIN_FILENO)
 
     cmp rax, 0x1                                 ; isatty?
     jne prompt_display.getline
@@ -42,7 +44,7 @@ section .text
 
       mov r12, rax                               ; saving our 'buf' pointer
 
-      mov rdi, 0x0
+      mov rdi, STDIN_FILENO
       mov rsi, rax
       mov rdx, 0x3e8
       call read                                  ; read(STDIN_FILENO, buf, 1000)
