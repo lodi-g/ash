@@ -7,6 +7,36 @@ global process_exec:function
 %include "def.inc"
 %include "exec.inc"
 
+section .data
+  ; wordexp_t we
+  we:
+    istruc wordexp_t
+      at we_wordc, dq 0
+      at we_wordv, dq 0
+      at we_offs, dq 0
+    iend
+
+  cdump: db " (core dumped)", 10, 0
+  endl: db 10, 0
+
+  ; Signal list
+  null: db 0
+  hup: db "Hangup", 0
+  int: db "Interupt", 0
+  quit: db "Quit", 0
+  ill: db "Illegal hardware instruction", 0
+  trap: db "Trace trap", 0
+  abrt: db "Abort", 0
+  bus: db "Bus error", 0
+  fpe: db "Floating point exception", 0
+  kill: db "Filled", 0
+  usr1: db "User signal 1", 0
+  segv: db "Segmentation Fault", 0
+  usr2: db "User signal 2", 0
+
+  signals: dq null, hup, int, quit, ill, trap, abrt, bus, fpe, kill, usr1, segv, usr2
+
+
 section .text:
   ; libc
   extern fork
@@ -15,6 +45,7 @@ section .text:
   extern waitpid
   extern perror
   extern exit
+  extern wordexp
 
   ; int process_exec(char *file, char **argv)
   process_exec:
@@ -33,11 +64,18 @@ section .text:
 
     .child:
       mov rdi, [rbp - 0x1c]
-      lea rsi, [rbp - 0x1c]
+      lea rsi, [we]
+      xor rdx, rdx
+      call wordexp
+
+      mov rdi, [we + 0x8]                        ; we.wordv
+      mov rdi, [rdi]                             ; *we.wordv
+      mov rsi, [we + 0x8]                        ; we.wordv
 
       call execvp                                ; execvp(file, argv);
 
-      mov rdi, [rbp - 0x1c]
+      mov rdi, [we + 0x8]
+      mov rdi, [rdi]
       call perror                                ; perror(file)
       mov rdi, 0x1
       call exit                                  ; exit(1)
@@ -111,25 +149,3 @@ section .text:
 
     .leave:
       ret
-
-
-section .data:
-  cdump: db " (core dumped)", 10, 0
-  endl: db 10, 0
-
-  ; Signal list
-  null: db 0
-  hup: db "Hangup", 0
-  int: db "Interupt", 0
-  quit: db "Quit", 0
-  ill: db "Illegal hardware instruction", 0
-  trap: db "Trace trap", 0
-  abrt: db "Abort", 0
-  bus: db "Bus error", 0
-  fpe: db "Floating point exception", 0
-  kill: db "Filled", 0
-  usr1: db "User signal 1", 0
-  segv: db "Segmentation Fault", 0
-  usr2: db "User signal 2", 0
-
-  signals: dq null, hup, int, quit, ill, trap, abrt, bus, fpe, kill, usr1, segv, usr2
