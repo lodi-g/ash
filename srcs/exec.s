@@ -7,7 +7,7 @@ global process_exec:function
 %include "def.inc"
 %include "exec.inc"
 
-section .text:
+section .text
   ; libc
   extern fork
   extern printf
@@ -22,7 +22,7 @@ section .text:
     prologue
 
     sub rsp, 0x20                                ; expanding stack
-    mov QWORD [rbp - 0x1c], rdi                  ; (char *)file
+    mov QWORD [rbp - 0x1c], rdi                  ; we.wordv
     mov DWORD [rbp - 0x10], 0x0                  ; wstatus
 
     call fork                                    ; fork()
@@ -33,17 +33,11 @@ section .text:
 
     .child:
       mov rdi, [rbp - 0x1c]
-      lea rsi, [we]
-      xor rdx, rdx
-      call wordexp
+      mov rdi, [rdi]
+      mov rsi, [rbp - 0x1c]
+      call execvp                                ; execvp(*we.wordv, we.wordv);
 
-      mov rdi, [we + 0x8]                        ; we.wordv
-      mov rdi, [rdi]                             ; *we.wordv
-      mov rsi, [we + 0x8]                        ; we.wordv
-
-      call execvp                                ; execvp(file, argv);
-
-      mov rdi, [we + 0x8]
+      mov rdi, [rbp - 0x1c]
       mov rdi, [rdi]
       call perror                                ; perror(file)
       mov rdi, 0x1
@@ -56,7 +50,6 @@ section .text:
       call waitpid                               ; waitpid(pid, &wstatus, 0)
 
       mov rdi, [rbp - 0x10]
-      mov rsi, [rbp - 0x1c]
       call process_exited                        ; process_exited(wstatus, file)
 
     add rsp, 0x30                                ; restoring old stack size

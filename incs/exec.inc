@@ -5,12 +5,6 @@
 %ifndef _EXEC_INC_
 %define _EXEC_INC_
 
-struc wordexp_t
-  we_wordc: resq 1
-  we_wordv: resq 1
-  we_offs: resq 1
-endstruc
-
 ; macros W* expects a register as parameter and modify that register
 
 %define WCOREFLAG 0x80
@@ -34,14 +28,6 @@ endstruc
 
 
 section .data
-  ; wordexp_t we
-  we:
-    istruc wordexp_t
-      at we_wordc, dq 0
-      at we_wordv, dq 0
-      at we_offs, dq 0
-    iend
-
   cdump: db " (core dumped)", 10, 0
   endl: db 10, 0
 

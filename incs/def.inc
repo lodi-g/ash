@@ -24,4 +24,10 @@
   call printf
 %endmacro
 
+struc wordexp_t
+  we_wordc: resq 1
+  we_wordv: resq 1
+  we_offs: resq 1
+endstruc
+
 %endif

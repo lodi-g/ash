@@ -10,11 +10,11 @@ section .text
   ; libc
   extern printf
   extern exit
+  extern wordexp
 
   ; ash
-  extern prompt_display
+  extern prompt
   extern process_exec
-  extern parse_raw
 
   main:
     prologue
@@ -24,14 +24,34 @@ section .text
     mov DWORD [rbp - 0x18], 0x0                  ; last return value
 
     .loop:
-      call prompt_display
+      call prompt
 
       cmp rax, 0x0                               ; EOF / ^D
       je main.leave
 
-      mov rdi, rax                               ; raw buffer
+      mov [rbp - 0x8], rax                       ; Save buffer to the stack
+
+      movzx rdx, BYTE [rax]
+      movsx rdx, dl
+      cmp rdx, 0x0                               ; if (*buffer == 0)
+      je main.loop
+
+      mov rdi, [rbp - 0x8]
+      lea rsi, [we]
+      xor rdx, rdx
+      call wordexp
+
+      ; mov rdi, rax
+      ; call builtin
+      ; mov [rbp - 0x18]
+      ;
+      ; test rax, rax
+      ; je main.loop
+
+      mov rdi, [we + 0x8]
       call process_exec
-      mov [rbp - 0x18], rax
+
+      mov [rbp - 0x18], rax                      ; save return status to the stack
 
       jmp main.loop
 
@@ -41,3 +61,13 @@ section .text
 
       epilogue
       ret
+
+
+section .data
+; wordexp_t we
+  we:
+    istruc wordexp_t
+      at we_wordc, dq 0
+      at we_wordv, dq 0
+      at we_offs, dq 0
+    iend

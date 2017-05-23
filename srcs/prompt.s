@@ -2,12 +2,12 @@
 ; written by Gregoire Lodi
 ; https://github.com/lodi-g
 
-global prompt_display:function
+global prompt:function
 
 %include "def.inc"
 
 section .data
-  prompt: db "> ", 0
+  ps1: db "> ", 0
 
 
 section .text
@@ -22,24 +22,24 @@ section .text
   extern strlen
   extern calloc
 
-  prompt_display:
+  prompt:
     mov rdi, STDIN_FILENO
     call isatty                                  ; isatty(STDIN_FILENO)
 
     cmp rax, 0x1                                 ; isatty?
-    jne prompt_display.getline
-    jmp prompt_display.readline
+    jne prompt.getline
+    jmp prompt.readline
 
     .readline:
-      mov rdi, prompt
-      call readline                              ; readline(prompt)
+      mov rdi, ps1
+      call readline                              ; readline(ps1)
 
       push rax
 
       mov rdi, rax
       call add_history                           ; add_history(buffer)
 
-      jmp prompt_display.leave
+      jmp prompt.leave
 
     .getline:
       mov rdi, 0x400
@@ -54,7 +54,7 @@ section .text
       call read                                  ; read(STDIN_FILENO, buf, 1000)
 
       cmp rax, 0x0                               ; Read zero bytes?
-      je prompt_display.end
+      je prompt.end
 
       mov rdi, r12
       call strlen
@@ -65,7 +65,7 @@ section .text
       mov BYTE [rdx], 0x0                        ; buffer[strlen(buffer) - 1] = 0
 
       push r12
-      jmp prompt_display.leave
+      jmp prompt.leave
 
     .end:
       mov rax, 0x0                               ; Returning NULL
