@@ -7,36 +7,6 @@ global process_exec:function
 %include "def.inc"
 %include "exec.inc"
 
-section .data
-  ; wordexp_t we
-  we:
-    istruc wordexp_t
-      at we_wordc, dq 0
-      at we_wordv, dq 0
-      at we_offs, dq 0
-    iend
-
-  cdump: db " (core dumped)", 10, 0
-  endl: db 10, 0
-
-  ; Signal list
-  null: db 0
-  hup: db "Hangup", 0
-  int: db "Interupt", 0
-  quit: db "Quit", 0
-  ill: db "Illegal hardware instruction", 0
-  trap: db "Trace trap", 0
-  abrt: db "Abort", 0
-  bus: db "Bus error", 0
-  fpe: db "Floating point exception", 0
-  kill: db "Filled", 0
-  usr1: db "User signal 1", 0
-  segv: db "Segmentation Fault", 0
-  usr2: db "User signal 2", 0
-
-  signals: dq null, hup, int, quit, ill, trap, abrt, bus, fpe, kill, usr1, segv, usr2
-
-
 section .text:
   ; libc
   extern fork
@@ -51,9 +21,8 @@ section .text:
   process_exec:
     prologue
 
-    sub rsp, 0x30                                ; expanding stack
+    sub rsp, 0x20                                ; expanding stack
     mov QWORD [rbp - 0x1c], rdi                  ; (char *)file
-    mov QWORD [rbp - 0x14], rsi                  ; (char **)argv
     mov DWORD [rbp - 0x10], 0x0                  ; wstatus
 
     call fork                                    ; fork()
