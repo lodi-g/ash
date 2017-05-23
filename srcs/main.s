@@ -4,45 +4,50 @@
 
 global main
 
+%include "def.inc"
+
 section .text
   ; libc
   extern printf
+  extern exit
 
   ; ash
   extern prompt_display
   extern process_exec
+  extern parse_raw
 
   main:
-    enter 0x0, 0x0
+    prologue
 
-    sub rsp, 0x14
-    mov QWORD [rbp - 0x8], 0x0                   ; readline return value
-    mov DWORD [rbp - 0x10], 0x0                  ; last return value
+    sub rsp, 0x20
+    mov QWORD [rbp - 0x8], 0x0                   ; binary
+    mov QWORD [rbp - 0x10], 0x0                  ; arguments
+    mov DWORD [rbp - 0x18], 0x0                  ; last return value
 
     .loop:
       call prompt_display
 
-      mov [rbp - 0x8], rax
-
-      cmp QWORD [rbp - 0x8], 0x0                 ; EOF / ^D
+      cmp rax, 0x0                               ; EOF / ^D
       je main.leave
 
-      xor rax, rax                               ; Debug
-      mov rdi, line_info
-      mov rsi, [rbp - 0x8]
-      call printf
+      mov [rbp - 0x8], rax
+      
+      mov rdi, [rbp - 0x8]
+      mov rsi, [rbp - 0x10]
+      call parse_raw
 
-      mov rdi, [rbp - 0x8]                       ; readline return value
+      mov rdi, [rbp - 0x8]                       ; binary
+      mov rsi, [rbp - 0x10]                      ; arguments
       call process_exec
-      mov [rbp - 0x10], rax
+      mov [rbp - 0x18], rax
 
       jmp main.loop
 
     .leave:
-      mov rax, [rbp - 0x10]                      ; main returns last return value
-      add rsp, 0x14
+      mov rax, [rbp - 0x18]                      ; main returns last return value
+      add rsp, 0x20
 
-      leave
+      epilogue
       ret
 
 

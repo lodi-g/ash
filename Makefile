@@ -1,22 +1,22 @@
 SRCDIR		:=	srcs
 OBJDIR		:=	objs
-INCDIR		:=
+INCDIR		:=	incs
 OUTDIR		:=	.
 
 AS				:=	nasm
-ASFLAGS		:=	-g -f elf64
+INCFLAGS	:=	$(addprefix -I, $(addsuffix /, $(INCDIR)))
+ASFLAGS		:=	-g -f elf64 $(INCFLAGS)
 
 RM				:=	@rm -v -f
 
 LD				:=	gcc
-INCFLAGS	:=	$(addprefix -I, $(INCDIR))
 LDLIBS		:=	readline
 LDLIBS		:=	$(addprefix -l, $(LDLIBS))
 LDFLAGS		:=	$(INCFLAGS)
 
 NAME			:=	$(OUTDIR)/ash
 
-SRCS			:=	main.s exec.s prompt.s
+SRCS			:=	main.s exec.s parser.s prompt.s
 OBJS			:=	$(addprefix $(OBJDIR)/, $(SRCS))
 SRCS			:=	$(addprefix $(SRCDIR)/, $(SRCS))
 OBJS			:=	$(patsubst %.s, %.o, $(OBJS))
