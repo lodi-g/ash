@@ -6,6 +6,10 @@ global prompt_display:function
 
 %include "def.inc"
 
+section .data
+  prompt: db "> ", 0
+
+
 section .text
   ; readline
   extern readline
@@ -70,7 +74,3 @@ section .text
     .leave:
       pop rax                                    ; Returning buffer
       ret
-
-
-section .data
-  prompt: db "> ", 0

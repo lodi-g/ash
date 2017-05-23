@@ -20,8 +20,7 @@ section .text
     prologue
 
     sub rsp, 0x20
-    mov QWORD [rbp - 0x8], 0x0                   ; binary
-    mov QWORD [rbp - 0x10], 0x0                  ; arguments
+    mov QWORD [rbp - 0x8], 0x0                   ; raw buffer
     mov DWORD [rbp - 0x18], 0x0                  ; last return value
 
     .loop:
@@ -30,14 +29,7 @@ section .text
       cmp rax, 0x0                               ; EOF / ^D
       je main.leave
 
-      mov [rbp - 0x8], rax
-      
-      mov rdi, [rbp - 0x8]
-      mov rsi, [rbp - 0x10]
-      call parse_raw
-
-      mov rdi, [rbp - 0x8]                       ; binary
-      mov rsi, [rbp - 0x10]                      ; arguments
+      mov rdi, rax                               ; raw buffer
       call process_exec
       mov [rbp - 0x18], rax
 
@@ -49,7 +41,3 @@ section .text
 
       epilogue
       ret
-
-
-section .data
-  line_info: db "Input: '%s'", 10, 0
