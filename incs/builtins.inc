@@ -8,9 +8,11 @@
 
 section .data
   cd: dq "cd", 0
+  setenv: dq "setenv", 0
+  unsetenv: dq "unsetenv", 0
 
-  builtins: dq cd
-  builtins_fptr: dq bi_cd
-  builtins_nb: dq 1
+  builtins: dq cd, setenv, unsetenv
+  builtins_fptr: dq bi_cd, bi_setenv, bi_unsetenv
+  builtins_nb: dq 3
 
 %endif

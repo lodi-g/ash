@@ -47,7 +47,11 @@ section .text
       add rsi, rax
       mov rsi, [rsi]
 
+      push rcx
+
       call strcmp                                ; strcmp(rdi, builtins[rcx * sizeof(char *)])
+
+      pop rcx
 
       cmp rax, 0x0
       je is_builtin.found
@@ -124,4 +128,11 @@ section .text
       add rsi, 0x10
 
     epilogue
+
+    ret
+
+  bi_setenv:
+    ret
+
+  bi_unsetenv:
     ret
