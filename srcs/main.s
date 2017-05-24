@@ -2,9 +2,9 @@
 ; written by Gregoire Lodi
 ; https://github.com/lodi-g
 
-global main
-
 %include "def.inc"
+
+global main:function
 
 section .text
   ; libc
@@ -15,6 +15,7 @@ section .text
   ; ash
   extern prompt
   extern process_exec
+  extern is_builtin
 
   main:
     prologue
@@ -41,12 +42,11 @@ section .text
       xor rdx, rdx
       call wordexp
 
-      ; mov rdi, rax
-      ; call builtin
-      ; mov [rbp - 0x18]
-      ;
-      ; test rax, rax
-      ; je main.loop
+      mov rdi, [we + 0x8]
+      call is_builtin                            ; is_builtin(we.wordv)
+
+      cmp rax, 0x0
+      je main.loop                               ; it was a builtin
 
       mov rdi, [we + 0x8]
       call process_exec

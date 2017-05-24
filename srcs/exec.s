@@ -2,10 +2,10 @@
 ; written by Gregoire Lodi
 ; https://github.com/lodi-g
 
-global process_exec:function
-
 %include "def.inc"
 %include "exec.inc"
+
+global process_exec:function
 
 section .text
   ; libc

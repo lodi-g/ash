@@ -5,7 +5,7 @@ OUTDIR		:=	.
 
 AS				:=	nasm
 INCFLAGS	:=	$(addprefix -I, $(addsuffix /, $(INCDIR)))
-ASFLAGS		:=	-g -f elf64 $(INCFLAGS)
+ASFLAGS		:=	-g -F dwarf -f elf64 $(INCFLAGS)
 
 RM				:=	@rm -v -f
 
@@ -16,7 +16,7 @@ LDFLAGS		:=	$(INCFLAGS)
 
 NAME			:=	$(OUTDIR)/ash
 
-SRCS			:=	main.s exec.s prompt.s
+SRCS			:=	builtins.s main.s exec.s prompt.s
 OBJS			:=	$(addprefix $(OBJDIR)/, $(SRCS))
 SRCS			:=	$(addprefix $(SRCDIR)/, $(SRCS))
 OBJS			:=	$(patsubst %.s, %.o, $(OBJS))

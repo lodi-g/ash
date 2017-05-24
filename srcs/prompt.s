@@ -2,9 +2,9 @@
 ; written by Gregoire Lodi
 ; https://github.com/lodi-g
 
-global prompt:function
-
 %include "def.inc"
+
+global prompt:function
 
 section .data
   ps1: db "> ", 0
