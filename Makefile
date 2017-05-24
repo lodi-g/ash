@@ -24,9 +24,12 @@ OBJS			:=	$(patsubst %.s, %.o, $(OBJS))
 
 all:	$(NAME)
 
-$(NAME):	$(OBJS)
-	@$(LD) -o $@ $^ $(LDFLAGS) $(LDLIBS)
+$(NAME):	| $(OBJDIR) $(OBJS)
+	@$(LD) -o $@ $(OBJS) $(LDFLAGS) $(LDLIBS)
 	@echo "linked '$@'"
+
+$(OBJDIR):
+	@mkdir objs
 
 $(OBJDIR)/%.o::	$(SRCDIR)/%.s
 	@$(AS) $(ASFLAGS) $< -o $@
