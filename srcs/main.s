@@ -11,6 +11,7 @@ section .text
   extern printf
   extern exit
   extern wordexp
+  extern exit
 
   ; ash
   extern prompt
@@ -56,11 +57,13 @@ section .text
       jmp main.loop
 
     .leave:
-      mov rax, [rbp - 0x18]                      ; main returns last return value
+      mov rdi, [rbp - 0x18]                      ; main returns last return value
       add rsp, 0x20
 
       epilogue
-      ret
+      
+      mov rax, 60
+      syscall                                     ; exit(last_return)
 
 
 section .data

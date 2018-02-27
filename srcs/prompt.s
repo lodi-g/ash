@@ -36,6 +36,9 @@ section .text
 
       push rax
 
+      cmp rax, 0x0
+      je prompt.leave
+
       mov rdi, rax
       call add_history                           ; add_history(buffer)
 
