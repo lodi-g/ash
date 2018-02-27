@@ -3,16 +3,16 @@ OBJDIR		:=	objs
 INCDIR		:=	incs
 OUTDIR		:=	.
 
-AS				:=	nasm
+AS		:=	nasm
 INCFLAGS	:=	$(addprefix -I, $(addsuffix /, $(INCDIR)))
 ASFLAGS		:=	-g -F dwarf -f elf64 $(INCFLAGS)
 
 RM				:=	@rm -v -f
 
-LD				:=	gcc
-LDLIBS		:=	readline
+LD		:=	ld
+LDLIBS		:=	readline c
 LDLIBS		:=	$(addprefix -l, $(LDLIBS))
-LDFLAGS		:=	$(INCFLAGS)
+LDFLAGS		:=	$(INCFLAGS) -e main -I/lib/ld-linux-x86-64.so.2 
 
 NAME			:=	$(OUTDIR)/ash
 
