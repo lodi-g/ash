@@ -1,4 +1,8 @@
 # ash
 ash is the assembly shell, a featuresless shell written in assembly.
 
-Time spent so far: `25 hrs 24 mins`
+## Getting started
+* `git clone https://github.com/lodi-g/ash`
+* `cd ash`
+* `make`
+
